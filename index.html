@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TGForward Panel</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>" />
+</head>
+<body>
+
+<!-- ─────────────────────────────────────────────────────────── -->
+<!--  TOAST CONTAINER                                            -->
+<!-- ─────────────────────────────────────────────────────────── -->
+<div id="toast-container"></div>
+
+<!-- ─────────────────────────────────────────────────────────── -->
+<!--  LOGIN OVERLAY                                              -->
+<!-- ─────────────────────────────────────────────────────────── -->
+<div id="login-overlay">
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="logo-icon">🤖</span>
+      <h1>TGForward Panel</h1>
+      <p>Sistema de Gerenciamento de Bots Telegram</p>
+    </div>
+
+    <div id="login-error" class="login-error"></div>
+
+    <form id="login-form" autocomplete="off">
+      <div class="form-group">
+        <label for="login-user">Telefone conectado ao bot</label>
+        <input
+          id="login-user"
+          type="text"
+          placeholder="ex: 5511999999999"
+          autocomplete="username"
+          spellcheck="false"
+        />
+      </div>
+      <div class="form-group">
+        <label for="login-pass">Senha (ultimos 4 digitos)</label>
+        <input
+          id="login-pass"
+          type="password"
+          placeholder="1234"
+          autocomplete="current-password"
+        />
+      </div>
+      <button class="btn-login" id="login-btn" type="submit">
+        <span id="login-btn-text">Entrar</span>
+        <span id="login-btn-spinner" class="spinner" style="display:none;width:16px;height:16px;border-width:2px;"></span>
+      </button>
+    </form>
+
+    <p style="text-align:center;margin-top:24px;font-size:0.72rem;color:var(--text-muted);">
+      TGForward Panel v2.0 &nbsp;·&nbsp; Acesso restrito
+    </p>
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────────────────────── -->
+<!--  MOBILE SIDEBAR OVERLAY                                     -->
+<!-- ─────────────────────────────────────────────────────────── -->
+<div id="sidebar-overlay" class="sidebar-overlay" style="display:none;"></div>
+
+<!-- ─────────────────────────────────────────────────────────── -->
+<!--  APP SHELL                                                  -->
+<!-- ─────────────────────────────────────────────────────────── -->
+<div id="app" style="display:none;">
+
+  <!-- ── SIDEBAR ─────────────────────────────────────────────── -->
+  <aside id="sidebar">
+
+    <div class="sidebar-logo">
+      <div class="logo-wrap">
+        <span class="logo-icon">🤖</span>
+        <div class="logo-text">
+          <h2>TGForward</h2>
+          <span>Bot Management Panel</span>
+        </div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <span class="nav-label">Principal</span>
+
+      <div class="nav-item active" data-section="dashboard">
+        <span class="nav-icon">📊</span>
+        <span>Dashboard</span>
+      </div>
+
+      <div class="nav-item" data-section="users">
+        <span class="nav-icon">👥</span>
+        <span>Usuários</span>
+      </div>
+
+      <span class="nav-label">Operações</span>
+
+      <div class="nav-item" data-section="forward">
+        <span class="nav-icon">🔀</span>
+        <span>Forward / Listeners</span>
+      </div>
+
+      <div class="nav-item" data-section="clone">
+        <span class="nav-icon">📋</span>
+        <span>Clone</span>
+      </div>
+
+      <div class="nav-item" data-section="forwarder">
+        <span class="nav-icon">⚡</span>
+        <span>Encaminhadora</span>
+      </div>
+
+      <div class="nav-item" data-section="replace">
+        <span class="nav-icon">✏️</span>
+        <span>Substituições</span>
+      </div>
+
+      <div class="nav-item" data-section="vip">
+        <span class="nav-icon">⭐</span>
+        <span>VIP Mover</span>
+      </div>
+
+      <span class="nav-label">Sistema</span>
+
+      <div class="nav-item admin-only" data-section="admin" style="display:none;">
+        <span class="nav-icon">👑</span>
+        <span>Admin</span>
+      </div>
+
+      <div class="nav-item" data-section="logs">
+        <span class="nav-icon">📜</span>
+        <span>Logs ao Vivo</span>
+        <span class="nav-badge" id="log-badge" style="display:none;">●</span>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-avatar">AD</div>
+        <div class="user-info">
+          <div class="name">Admin</div>
+          <div class="role">Administrador</div>
+        </div>
+        <button class="logout-btn" id="logout-btn" title="Sair">⏏</button>
+      </div>
+    </div>
+
+  </aside><!-- /sidebar -->
+
+  <!-- ── MAIN CONTENT ────────────────────────────────────────── -->
+  <div id="main-content">
+
+    <!-- ── TOP HEADER ─────────────────────────────────────────── -->
+    <header id="top-header">
+      <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">☰</button>
+
+      <div class="header-title">
+        <h1>Dashboard</h1>
+        <p>Visão geral do sistema</p>
+      </div>
+
+      <div class="header-stats">
+        <div class="stat-pill">
+          <span class="icon">💾</span>
+          <span>RAM</span>
+          <span class="value" id="header-ram">—</span>
+        </div>
+        <div class="stat-pill">
+          <span class="icon">⏱</span>
+          <span>Uptime</span>
+          <span class="value" id="header-uptime">—</span>
+        </div>
+        <div class="stat-pill">
+          <span class="icon">⚙️</span>
+          <span>Tasks</span>
+          <span class="value" id="header-tasks">—</span>
+        </div>
+        <div class="stat-pill">
+          <div class="online-dot"></div>
+          <span>Online</span>
+        </div>
+      </div>
+    </header><!-- /top-header -->
+
+    <!-- ── PAGE AREA ──────────────────────────────────────────── -->
+    <main id="page-area">
+
+      <!-- ══════════════════════════════════════════════════════ -->
+      <!--  1. DASHBOARD                                          -->
+      <!-- ══════════════════════════════════════════════════════ -->
+      <section id="section-dashboard" class="section active">
+
+        <!-- Stat cards -->
+        <div class="stats-grid">
+
+          <div class="stat-card">
+            <span class="stat-card-icon">👥</span>
+            <div class="stat-card-value" id="stat-users">—</div>
+            <div class="stat-card-label">Usuários Ativos</div>
+            <div class="stat-card-change up">▲ conectados</div>
+          </div>
+
+          <div class="stat-card">
+            <span class="stat-card-icon">🔀</span>
+            <div class="stat-card-value" id="stat-listeners">—</div>
+            <div class="stat-card-label">Listeners Rodando</div>
+            <div class="stat-card-change up">▲ em execução</div>
+          </div>
+
+          <div class="stat-card">
+            <span class="stat-card-icon">📋</span>
+            <div class="stat-card-value" id="stat-clones">—</div>
+            <div class="stat-card-label">Clones Ativos</div>
+            <div class="stat-card-change neutral">– em progresso</div>
+          </div>
+
+          <div class="stat-card">
+            <span class="stat-card-icon">⚡</span>
+            <div class="stat-card-value" id="stat-forwarders">—</div>
+            <div class="stat-card-label">Encaminhadoras Ativas</div>
+            <div class="stat-card-change up">▲ em loop</div>
+          </div>
+
+        </div><!-- /stats-grid -->
+
+        <!-- System health -->
+        <div class="health-card">
+
+          <div class="health-metric" style="min-width:260px;flex:2;">
+            <div class="health-metric-label">💾 Uso de RAM</div>
+            <div class="progress-track">
+              <div class="progress-fill" id="ram-fill" style="width:0%"></div>
+            </div>
+            <div class="progress-value" id="ram-value">Carregando...</div>
+          </div>
+
+          <div class="health-metric" style="min-width:140px;">
+            <div class="health-metric-label">⏱ Uptime</div>
+            <div style="font-size:1.5rem;font-weight:800;color:var(--text-primary);margin-top:4px;" id="uptime-value">—</div>
+            <div style="font-size:0.72rem;color:var(--text-muted);">desde o último reinício</div>
+          </div>
+
+          <div class="health-metric" style="min-width:120px;">
+            <div class="health-metric-label">⚙️ Tasks Total</div>
+            <div style="font-size:1.5rem;font-weight:800;color:var(--text-primary);margin-top:4px;" id="tasks-value">—</div>
+            <div style="font-size:0.72rem;color:var(--text-muted);">tarefas configuradas</div>
+          </div>
+
+        </div><!-- /health-card -->
+
+        <!-- Recent activity -->
+        <div class="card">
+          <div class="section-header" style="margin-bottom:0;padding:20px 20px 16px;">
+            <div class="section-title">
+              <span class="icon">⚡</span>
+              <div>
+                <h2 style="font-size:1rem;">Atividade Recente</h2>
+                <p>Últimas ações do sistema</p>
+              </div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="loadDashboard()">🔄 Atualizar</button>
+          </div>
+          <div class="activity-feed">
+            <div class="activity-item">
+              <div class="activity-dot green"></div>
+              <div>
+                <div class="activity-text">Listener <strong>canal_vip_1</strong> iniciado com sucesso</div>
+                <div class="activity-time">agora mesmo</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot purple"></div>
+              <div>
+                <div class="activity-text">Clone <strong>backup_geral</strong> em progresso — 45%</div>
+                <div class="activity-time">2 min atrás</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot cyan"></div>
+              <div>
+                <div class="activity-text">Encaminhadora <strong>loop_milfs</strong> enviou lote #128</div>
+                <div class="activity-time">5 min atrás</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot red"></div>
+              <div>
+                <div class="activity-text">Usuário <strong>+55119****321</strong> desconectado — sessão expirada</div>
+                <div class="activity-time">12 min atrás</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot green"></div>
+              <div>
+                <div class="activity-text">Novo usuário <strong>VIP</strong> ativado pelo admin</div>
+                <div class="activity-time">1h atrás</div>
+              </div>
+            </div>
+          </div>
+        </div><!-- /activity card -->
+
+      </section><!-- /dashboard -->
+
+      <!-- ══════════════════════════════════════════════════════ -->
+      <!--  2. USUÁRIOS                                           -->
+      <!-- ══════════════════════════════════════════════════════ -->
+      <section id="section-users" class="section">
+
+        <div class="section-header">
+          <div class="section-title">
+            <span class="icon">👥</span>
+            <div>
+              <h2>Usuários</h2>
+              <p>Gerenciar contas e sessões Telegram</p>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="loadUsers()">🔄 Atualizar</button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Telefone</th>
+                <th>Tipo</th>
+                <th>Plano</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody">
+              <!-- skeleton -->
+              <tr class="skeleton-row"><td><span class="skeleton short"></span></td><td><span class="skeleton medium"></span></td><td><span class="skeleton short"></span></td><td><span class="skeleton short"></span></td><td><span class="skeleton medium"></span></td><td><span class="skeleton long"></span></td></tr>
+              <tr class="skeleton-row"><td><span class="skeleton short"></span></td><td><span class="skeleton medium"></span></td><td><span class="skeleton short"></span></td><td><span class="skeleton short"></span></td><td><span class="skeleton medium"></span></td><td><span class="skeleton long"></span></td></tr>
+              <tr class="skeleton-row"><td><span class="skeleton short"></span></td><td><span class="skeleton medium"></span></td><td><span class="skeleton short"></span></td><td><span class="skeleton short"></span></td><td><span class="skeleton medium"></span></td><td><span class="skeleton long"></span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </section><!-- /users -->
+
+      <!-- ══════════════════════════════════════════════════════ -->
+      <!--  3. FORWARD / LISTENERS                                -->
+      <!-- ══════════════════════════════════════════════════════ -->
+      <section id="section-forward" class="section">
+
+        <div class="section-header">
+          <div class="section-title">
+            <span class="icon">🔀</span>
+            <div>
+              <h2>Forward / Listeners</h2>
+              <p>Monitorar e controlar tarefas de escuta</p>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="loadForwardTasks()">🔄 Atualizar</button>
+        </div>
+
+        <div class="forward-grid" id="forward-grid">
+          <div style="grid-column:1/-1;text-align:center;padding:40px;">
+            <span class="spinner"></span>
+            <p style="margin-top:12px;color:var(--text-muted);">Carregando listeners...</p>
+          </div>
+        </div>
+
+      </section><!-- /forward -->
+
+      <!-- ══════════════════════════════════════════════════════ -->
+      <!--  4. CLONE                                              -->
+      <!-- ══════════════════════════════════════════════════════ -->
+      <section id="section-clone" class="section">
+
+        <div class="section-header">
+          <div class="section-title">
+            <span class="icon">📋</span>
+            <div>
+              <h2>Clone</h2>
+              <p>Tarefas de clonagem de canais e mensagens</p>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="loadCloneTasks()">🔄 Atualizar</button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Origem</th>
+                <th>Destino(s)</th>
+                <th>Progresso</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="clone-tbody">
+              <tr class="skeleton-row"><td><span class="skeleton medium"></span></td><td><span class="skeleton short"></span></td><td><span class="skeleton long"></span></td><td><span class="skeleton medium"></span></td><td><span class="skeleton short"></span></td><td><span class="skeleton long"></span></td></tr>
+              <tr class="skeleton-row"><td><span class="skeleton medium"></span></td><td><span class="skeleton short"></span></td><td><span class="skeleton long"></span></td><td><span class="skeleton medium"></span></td><td><span class="skeleton short"></span></td><td><span class="skeleton long"></span></td></tr>
+              <tr class="skeleton-row"><td><span class="skeleton medium"></span></td><td><span class="skeleton short"></span></td><td><span class="skeleton long"></span></td><td><span class="skeleton medium"></span></td><td><span class="skeleton short"></span></td><td><span class="skeleton long"></span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </section><!-- /clone -->
+
+      <!-- ══════════════════════════════════════════════════════ -->
+      <!--  5. ENCAMINHADORA                                      -->
+      <!-- ══════════════════════════════════════════════════════ -->
+      <section id="section-forwarder" class="section">
+
+        <div class="section-header">
+          <div class="section-title">
+            <span class="icon">⚡</span>
+            <div>
+              <h2>Encaminhadora</h2>
+              <p>Loops de envio automático de conteúdo</p>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="loadForwarderTasks()">🔄 Atualizar</button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Estoque</th>
+                <th>Destino</th>
+                <th>Intervalo</th>
+                <th>Último Envio</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="forwarder-tbody">
+              <tr class="skeleton-row"><td><span class="skeleton medium"></span></td><td><span class="skeleton short"></span></td><td><span class="skeleton short"></span></td><td><span class="skeleton short"></span></td><td><span class="skeleton medium"></span></td><td><span class="skeleton short"></span></td></tr>
+              <tr class="skeleton-row"><td><span class="skeleton medium"></span></td><td><span class="skeleton short"></span></td><td><span class="skeleton short"></span></td><td><span class="skeleton short"></span></td><td><span class="skeleton medium"></span></td><td><span class="skeleton short"></span></td></tr>
+              <tr class="skeleton-row"><td><span class="skeleton medium"></span></td><td><span class="skeleton short"></span></td><td><span class="skeleton short"></span></td><td><span class="skeleton short"></span></td><td><span class="skeleton medium"></span></td><td><span class="skeleton short"></span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </section><!-- /forwarder -->
+
+      <!-- ══════════════════════════════════════════════════════ -->
+      <!--  6. SUBSTITUIÇÕES                                      -->
+      <!-- ══════════════════════════════════════════════════════ -->
+      <section id="section-replace" class="section">
+
+        <div class="section-header">
+          <div class="section-title">
+            <span class="icon">✏️</span>
+            <div>
+              <h2>Substituições</h2>
+              <p>Regras de substituição de texto por usuário</p>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="loadReplaceRules()">🔄 Atualizar</button>
+        </div>
+
+        <div id="replace-container">
+          <div style="text-align:center;padding:40px;">
+            <span class="spinner"></span>
+            <p style="margin-top:12px;color:var(--text-muted);">Carregando regras...</p>
+          </div>
+        </div>
+
+      </section><!-- /replace -->
+
+      <!-- ══════════════════════════════════════════════════════ -->
+      <!--  7. VIP MOVER                                          -->
+      <!-- ══════════════════════════════════════════════════════ -->
+      <section id="section-vip" class="section">
+
+        <div class="section-header">
+          <div class="section-title">
+            <span class="icon">⭐</span>
+            <div>
+              <h2>VIP Mover</h2>
+              <p>Movimentação de conteúdo exclusivo VIP</p>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="loadVipTasks()">🔄 Atualizar</button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Canal</th>
+                <th>Categoria</th>
+                <th>Frequência</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="vip-tbody">
+              <tr class="skeleton-row"><td><span class="skeleton medium"></span></td><td><span class="skeleton short"></span></td><td><span class="skeleton short"></span></td><td><span class="skeleton short"></span></td><td><span class="skeleton medium"></span></td></tr>
+              <tr class="skeleton-row"><td><span class="skeleton medium"></span></td><td><span class="skeleton short"></span></td><td><span class="skeleton short"></span></td><td><span class="skeleton short"></span></td><td><span class="skeleton medium"></span></td></tr>
+              <tr class="skeleton-row"><td><span class="skeleton medium"></span></td><td><span class="skeleton short"></span></td><td><span class="skeleton short"></span></td><td><span class="skeleton short"></span></td><td><span class="skeleton medium"></span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </section><!-- /vip -->
+
+      <!-- ══════════════════════════════════════════════════════ -->
+      <!--  8. ADMIN                                              -->
+      <!-- ══════════════════════════════════════════════════════ -->
+      <section id="section-admin" class="section">
+
+        <div class="section-header">
+          <div class="section-title">
+            <span class="icon">👑</span>
+            <div>
+              <h2>Administração</h2>
+              <p>Gerenciar usuários e permissões do sistema</p>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="loadAdminUsers()">🔄 Atualizar</button>
+        </div>
+
+        <!-- Quick actions -->
+        <div class="card" style="margin-bottom:22px;padding:18px 22px;">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <span style="font-size:0.82rem;font-weight:600;color:var(--text-secondary);">⚡ Ações rápidas:</span>
+            <button class="btn btn-ghost btn-sm" onclick="apiFetch('/admin/restart',{method:'POST'}).then(()=>showToast('Sistema reiniciado','success')).catch(e=>showToast(e.message,'error'))">
+              🔄 Reiniciar Sistema
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick="apiFetch('/admin/sessions/cleanup',{method:'POST'}).then(()=>showToast('Sessões limpas','success')).catch(e=>showToast(e.message,'error'))">
+              🧹 Limpar Sessões
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick="apiFetch('/admin/cache/clear',{method:'POST'}).then(()=>showToast('Cache limpo','success')).catch(e=>showToast(e.message,'error'))">
+              🗑️ Limpar Cache
+            </button>
+          </div>
+        </div>
+
+        <div class="admin-grid" id="admin-grid">
+          <div style="grid-column:1/-1;text-align:center;padding:40px;">
+            <span class="spinner"></span>
+          </div>
+        </div>
+
+      </section><!-- /admin -->
+
+      <!-- ══════════════════════════════════════════════════════ -->
+      <!--  9. LOGS AO VIVO                                       -->
+      <!-- ══════════════════════════════════════════════════════ -->
+      <section id="section-logs" class="section">
+
+        <div class="section-header">
+          <div class="section-title">
+            <span class="icon">📜</span>
+            <div>
+              <h2>Logs ao Vivo</h2>
+              <p>Stream em tempo real via WebSocket</p>
+            </div>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-ghost btn-sm" id="reconnect-logs-btn">🔌 Reconectar</button>
+            <button class="btn btn-danger btn-sm" id="clear-logs-btn">🗑️ Limpar</button>
+          </div>
+        </div>
+
+        <div class="log-window">
+          <div class="log-header">
+            <div class="log-dot disconnected"></div>
+            <span id="log-status-label">Desconectado</span>
+            <span style="margin-left:auto;font-size:0.72rem;color:var(--text-muted);">ws://localhost:7860/ws/logs</span>
+          </div>
+
+          <div id="log-output">
+            <span class="log-line dim">
+              <span class="log-time">[sistema]</span>Aguardando conexão WebSocket...
+            </span>
+          </div>
+
+          <div class="log-toolbar">
+            <span style="font-size:0.72rem;color:var(--text-muted);font-weight:600;">FILTRAR:</span>
+            <button class="log-filter-btn active" data-filter="all">Todos</button>
+            <button class="log-filter-btn" data-filter="info">Info</button>
+            <button class="log-filter-btn" data-filter="success">Sucesso</button>
+            <button class="log-filter-btn" data-filter="warn">Aviso</button>
+            <button class="log-filter-btn" data-filter="error">Erro</button>
+            <span style="margin-left:auto;font-size:0.72rem;color:var(--text-muted);">
+              Auto-scroll: ativa ao rolar para baixo
+            </span>
+          </div>
+        </div>
+
+      </section><!-- /logs -->
+
+    </main><!-- /page-area -->
+  </div><!-- /main-content -->
+</div><!-- /app -->
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
