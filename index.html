@@ -26,6 +26,15 @@
     </div>
 
     <div id="login-error" class="login-error"></div>
+    <div id="api-config" class="api-config">
+      <button type="button" id="api-config-toggle" class="api-config-toggle">Configurar API da Discloud</button>
+      <div id="api-config-panel" class="api-config-panel" style="display:none;">
+        <label for="api-base-input">URL da API</label>
+        <input id="api-base-input" type="text" placeholder="https://seu-bot.discloud.app/api" spellcheck="false" />
+        <button type="button" id="api-base-save" class="api-config-save">Salvar API</button>
+        <button type="button" id="api-base-clear" class="api-config-clear">Limpar</button>
+      </div>
+    </div>
 
     <form id="login-form" autocomplete="off">
       <div class="form-group">

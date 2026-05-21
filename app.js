@@ -1,10 +1,10 @@
-/* ============================================================
-   TGForward Panel – Complete SPA Logic
+﻿/* ============================================================
+   TGForward Panel â€“ Complete SPA Logic
    ============================================================ */
 
 'use strict';
 
-// ─── Config ──────────────────────────────────────────────────
+// â”€â”€â”€ Config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const IS_FILE_PROTOCOL = window.location.protocol === 'file:';
 const CONFIG_API_BASE = window.TG_FORWARD_API_BASE || localStorage.getItem('tgpanel_api_base') || '';
 const API_ACTIVE_KEY = 'tgpanel_active_api_base';
@@ -79,7 +79,7 @@ function getWsUrl() {
   return WS_URL;
 }
 
-// ─── State ───────────────────────────────────────────────────
+// â”€â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let currentSection   = 'dashboard';
 let wsConnection     = null;
 let autoRefreshTimer = null;
@@ -87,11 +87,11 @@ let logAutoScroll    = true;
 let currentLogFilter = 'all';
 let logLines         = [];
 
-// ─── Utility: Safe Element ────────────────────────────────────
+// â”€â”€â”€ Utility: Safe Element â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const $ = id => document.getElementById(id);
 const q = sel => document.querySelector(sel);
 
-// ─── Auth ─────────────────────────────────────────────────────
+// â”€â”€â”€ Auth â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function getToken() {
   return localStorage.getItem(TOKEN_KEY);
 }
@@ -117,8 +117,8 @@ async function login(user, pass) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: user, password: pass })
     });
-  } catch (_) {
-    throw new Error('Servidor web offline. Abra o painel em http://127.0.0.1:7860/ com o bot/web_server rodando.');
+  } catch (err) {
+    throw new Error(err.message || 'Servidor web offline ou API da Discloud inacessivel.');
   }
 
   if (!res.ok) {
@@ -161,7 +161,7 @@ async function refreshCurrentUser() {
   return data;
 }
 
-// ─── API Fetch ────────────────────────────────────────────────
+// â”€â”€â”€ API Fetch â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function apiFetch(path, options = {}) {
   const token = getToken();
   const headers = {
@@ -180,7 +180,7 @@ async function apiFetch(path, options = {}) {
   if (res.status === 401) {
     clearAuth();
     showLoginScreen();
-    throw new Error('Não autorizado — faça login novamente');
+    throw new Error('NÃ£o autorizado â€” faÃ§a login novamente');
   }
 
   if (!res.ok) {
@@ -216,19 +216,19 @@ async function waitForQueuedCommand(response, timeoutMs = 12000) {
   return response;
 }
 
-// ─── Toast Notifications ──────────────────────────────────────
+// â”€â”€â”€ Toast Notifications â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const TOAST_ICONS = {
-  success: '✅',
-  error:   '❌',
-  info:    'ℹ️',
-  warning: '⚠️'
+  success: 'âœ…',
+  error:   'âŒ',
+  info:    'â„¹ï¸',
+  warning: 'âš ï¸'
 };
 
 const TOAST_TITLES = {
   success: 'Sucesso',
   error:   'Erro',
-  info:    'Informação',
-  warning: 'Atenção'
+  info:    'InformaÃ§Ã£o',
+  warning: 'AtenÃ§Ã£o'
 };
 
 function showToast(message, type = 'info', title = null, duration = 4000) {
@@ -236,12 +236,12 @@ function showToast(message, type = 'info', title = null, duration = 4000) {
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
   toast.innerHTML = `
-    <span class="toast-icon">${TOAST_ICONS[type] || 'ℹ️'}</span>
+    <span class="toast-icon">${TOAST_ICONS[type] || 'â„¹ï¸'}</span>
     <div class="toast-body">
       <div class="toast-title">${title || TOAST_TITLES[type]}</div>
       <div class="toast-msg">${message}</div>
     </div>
-    <button class="toast-close" onclick="dismissToast(this.parentElement)">✕</button>
+    <button class="toast-close" onclick="dismissToast(this.parentElement)">âœ•</button>
   `;
   container.appendChild(toast);
 
@@ -259,7 +259,7 @@ function dismissToast(toast) {
   setTimeout(() => toast.remove(), 350);
 }
 
-// ─── Navigation ───────────────────────────────────────────────
+// â”€â”€â”€ Navigation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function navigateTo(sectionId) {
   // Hide all sections
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -278,14 +278,14 @@ function navigateTo(sectionId) {
 
   // Update header title
   const titles = {
-    dashboard:    { title: 'Dashboard',            sub: 'Visão geral do sistema' },
-    users:        { title: 'Usuários',              sub: 'Gerenciar contas e sessões' },
+    dashboard:    { title: 'Dashboard',            sub: 'VisÃ£o geral do sistema' },
+    users:        { title: 'UsuÃ¡rios',              sub: 'Gerenciar contas e sessÃµes' },
     forward:      { title: 'Forward / Listeners',   sub: 'Monitorar tarefas de escuta' },
     clone:        { title: 'Clone',                 sub: 'Tarefas de clonagem de canais' },
-    forwarder:    { title: 'Encaminhadora',          sub: 'Loops de envio automático' },
-    replace:      { title: 'Substituições',          sub: 'Regras de substituição de texto' },
-    vip:          { title: 'VIP Mover',              sub: 'Movimentação de conteúdo VIP' },
-    admin:        { title: 'Administração',          sub: 'Gerenciar usuários e permissões' },
+    forwarder:    { title: 'Encaminhadora',          sub: 'Loops de envio automÃ¡tico' },
+    replace:      { title: 'SubstituiÃ§Ãµes',          sub: 'Regras de substituiÃ§Ã£o de texto' },
+    vip:          { title: 'VIP Mover',              sub: 'MovimentaÃ§Ã£o de conteÃºdo VIP' },
+    admin:        { title: 'AdministraÃ§Ã£o',          sub: 'Gerenciar usuÃ¡rios e permissÃµes' },
     logs:         { title: 'Logs ao Vivo',           sub: 'Stream em tempo real' }
   };
 
@@ -318,7 +318,7 @@ function loadSection(id) {
   if (fn) fn();
 }
 
-// ─── Render Helpers ───────────────────────────────────────────
+// â”€â”€â”€ Render Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function renderSkeletonRows(n, cols) {
   const widths = ['short', 'medium', 'long', 'medium', 'short'];
   return Array.from({ length: n }).map(() => `
@@ -351,7 +351,7 @@ function renderProgressBar(done, total) {
 
 function renderToggle(checked, onchangeCall, id = '') {
   return `
-    <label class="toggle" title="${checked ? 'Ativo — clique para desativar' : 'Inativo — clique para ativar'}">
+    <label class="toggle" title="${checked ? 'Ativo â€” clique para desativar' : 'Inativo â€” clique para ativar'}">
       <input type="checkbox" ${checked ? 'checked' : ''} onchange="${onchangeCall}" id="${id}">
       <span class="toggle-slider"></span>
     </label>
@@ -359,27 +359,27 @@ function renderToggle(checked, onchangeCall, id = '') {
 }
 
 function formatNum(n) {
-  if (n == null) return '—';
+  if (n == null) return 'â€”';
   return Number(n).toLocaleString('pt-BR');
 }
 
 function formatDate(d) {
-  if (!d) return '—';
+  if (!d) return 'â€”';
   try {
     return new Date(d).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
   } catch (_) { return String(d); }
 }
 
 function timeAgo(d) {
-  if (!d) return '—';
+  if (!d) return 'â€”';
   const diff = (Date.now() - new Date(d).getTime()) / 1000;
-  if (diff < 60)   return `${Math.round(diff)}s atrás`;
-  if (diff < 3600) return `${Math.round(diff/60)}min atrás`;
-  if (diff < 86400) return `${Math.round(diff/3600)}h atrás`;
-  return `${Math.round(diff/86400)}d atrás`;
+  if (diff < 60)   return `${Math.round(diff)}s atrÃ¡s`;
+  if (diff < 3600) return `${Math.round(diff/60)}min atrÃ¡s`;
+  if (diff < 86400) return `${Math.round(diff/3600)}h atrÃ¡s`;
+  return `${Math.round(diff/86400)}d atrÃ¡s`;
 }
 
-// ─── Dashboard ────────────────────────────────────────────────
+// â”€â”€â”€ Dashboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function loadDashboard() {
   // Show skeleton in stat cards
   ['stat-users', 'stat-listeners', 'stat-clones', 'stat-forwarders'].forEach(id => {
@@ -391,7 +391,7 @@ async function loadDashboard() {
     const data = await apiFetch('/status');
     updateDashboardStats(data);
   } catch (e) {
-    showToast('Não foi possível carregar o status: ' + e.message, 'error');
+    showToast('NÃ£o foi possÃ­vel carregar o status: ' + e.message, 'error');
     // Show demo values
     updateDashboardStats({
       active_users: 0, running_listeners: 0,
@@ -444,7 +444,7 @@ function updateDashboardStats(data) {
   if (hTasks)  hTasks.textContent  = formatNum(data.tasks_total ?? 0);
 }
 
-// ─── Users ────────────────────────────────────────────────────
+// â”€â”€â”€ Users â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function loadUsers() {
   const tbody = $('users-tbody');
   if (!tbody) return;
@@ -456,7 +456,7 @@ async function loadUsers() {
 
     if (!users.length) {
       tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;">
-        <div class="empty-state"><div class="empty-icon">👥</div><p>Nenhum usuário encontrado</p></div>
+        <div class="empty-state"><div class="empty-icon">ðŸ‘¥</div><p>Nenhum usuÃ¡rio encontrado</p></div>
       </td></tr>`;
       return;
     }
@@ -464,7 +464,7 @@ async function loadUsers() {
     tbody.innerHTML = users.map(renderUserRow).join('');
   } catch (e) {
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--red);padding:20px;">${e.message}</td></tr>`;
-    showToast('Erro ao carregar usuários: ' + e.message, 'error');
+    showToast('Erro ao carregar usuÃ¡rios: ' + e.message, 'error');
   }
 }
 
@@ -475,19 +475,19 @@ function renderUserRow(user) {
 
   return `
     <tr>
-      <td class="monospace text-sm">#${user.id || user.user_id || '—'}</td>
-      <td class="monospace">${user.phone || user.telefone || '—'}</td>
+      <td class="monospace text-sm">#${user.id || user.user_id || 'â€”'}</td>
+      <td class="monospace">${user.phone || user.telefone || 'â€”'}</td>
       <td>${tipo === 'MOTHER'
           ? '<span class="badge badge-purple">MOTHER</span>'
           : '<span class="badge badge-cyan">DAUGHTER</span>'}</td>
       <td>${isVip
-          ? '<span class="badge badge-yellow">⭐ VIP</span>'
+          ? '<span class="badge badge-yellow">â­ VIP</span>'
           : '<span class="badge" style="background:rgba(100,116,139,.12);color:#64748b;border:1px solid rgba(100,116,139,.2)">FREE</span>'}</td>
       <td>${renderStatusBadge(conn, 'Conectado', 'Desconectado')}</td>
       <td>
         <div class="btn-group">
-          <button class="btn btn-ghost btn-sm" onclick="viewUserTasks('${user.id || user.user_id}')">📋 Tasks</button>
-          <button class="btn btn-danger btn-sm" onclick="disconnectUser('${user.id || user.user_id}', '${user.phone || ''}')">🔌 Desconectar</button>
+          <button class="btn btn-ghost btn-sm" onclick="viewUserTasks('${user.id || user.user_id}')">ðŸ“‹ Tasks</button>
+          <button class="btn btn-danger btn-sm" onclick="disconnectUser('${user.id || user.user_id}', '${user.phone || ''}')">ðŸ”Œ Desconectar</button>
         </div>
       </td>
     </tr>
@@ -495,10 +495,10 @@ function renderUserRow(user) {
 }
 
 async function disconnectUser(userId, phone) {
-  if (!confirm(`Desconectar usuário ${phone || userId}?`)) return;
+  if (!confirm(`Desconectar usuÃ¡rio ${phone || userId}?`)) return;
   try {
     await apiFetch(`/users/${userId}/disconnect`, { method: 'POST' });
-    showToast(`Usuário ${phone || userId} desconectado`, 'success');
+    showToast(`UsuÃ¡rio ${phone || userId} desconectado`, 'success');
     loadUsers();
   } catch (e) {
     showToast('Erro ao desconectar: ' + e.message, 'error');
@@ -506,11 +506,11 @@ async function disconnectUser(userId, phone) {
 }
 
 function viewUserTasks(userId) {
-  showToast(`Abrindo tasks do usuário #${userId}`, 'info');
+  showToast(`Abrindo tasks do usuÃ¡rio #${userId}`, 'info');
   navigateTo('forward');
 }
 
-// ─── Forward / Listeners ──────────────────────────────────────
+// â”€â”€â”€ Forward / Listeners â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function loadForwardTasks() {
   const grid = $('forward-grid');
   if (!grid) return;
@@ -524,7 +524,7 @@ async function loadForwardTasks() {
 
     if (!tasks.length) {
       grid.innerHTML = `<div style="grid-column:1/-1;">
-        <div class="empty-state"><div class="empty-icon">🔀</div><p>Nenhuma tarefa de forward encontrada</p></div>
+        <div class="empty-state"><div class="empty-icon">ðŸ”€</div><p>Nenhuma tarefa de forward encontrada</p></div>
       </div>`;
       return;
     }
@@ -559,10 +559,10 @@ function renderForwardCard(group) {
   return `
     <div class="forward-user-card">
       <div class="fwd-card-header">
-        <div class="fwd-avatar">📡</div>
+        <div class="fwd-avatar">ðŸ“¡</div>
         <div class="fwd-title">
           <h4>${phone || userId}</h4>
-          <span>${tasks.length} tarefa(s) · ${activeCnt} ativa(s)</span>
+          <span>${tasks.length} tarefa(s) Â· ${activeCnt} ativa(s)</span>
         </div>
         ${renderStatusBadge(activeCnt > 0)}
       </div>
@@ -585,15 +585,15 @@ function renderForwardTaskItem(userId, task) {
     <div class="fwd-task-item">
       <div class="fwd-task-info">
         <div class="fwd-task-name">${name}</div>
-        <div class="fwd-task-meta">📤 ${src} → ${dsts} destino(s)</div>
+        <div class="fwd-task-meta">ðŸ“¤ ${src} â†’ ${dsts} destino(s)</div>
       </div>
       ${renderStatusBadge(active)}
       <div class="btn-group">
-        <button class="btn btn-success btn-sm" onclick="startListener('${userId}','${name}')" title="Iniciar">▶</button>
-        <button class="btn btn-danger btn-sm"  onclick="stopListener('${userId}','${name}')"  title="Parar">⏹</button>
-        <button class="btn btn-warning btn-sm" onclick="restartListener('${userId}','${name}')" title="Reiniciar">🔄</button>
-        <button class="btn btn-ghost btn-sm" onclick="editForwardTask('${userId}','${name}','${src}','${(task.dests || []).join(',')}')">✏</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteForwardTask('${userId}','${name}')">🗑</button>
+        <button class="btn btn-success btn-sm" onclick="startListener('${userId}','${name}')" title="Iniciar">â–¶</button>
+        <button class="btn btn-danger btn-sm"  onclick="stopListener('${userId}','${name}')"  title="Parar">â¹</button>
+        <button class="btn btn-warning btn-sm" onclick="restartListener('${userId}','${name}')" title="Reiniciar">ðŸ”„</button>
+        <button class="btn btn-ghost btn-sm" onclick="editForwardTask('${userId}','${name}','${src}','${(task.dests || []).join(',')}')">âœ</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteForwardTask('${userId}','${name}')">ðŸ—‘</button>
       </div>
     </div>
   `;
@@ -638,7 +638,7 @@ async function createForwardTask() {
   if (!rule_name) return;
   const source_id = prompt('ID de origem:');
   if (!source_id) return;
-  const dest_ids = prompt('IDs de destino (separados por vírgula):');
+  const dest_ids = prompt('IDs de destino (separados por vÃ­rgula):');
   if (!dest_ids) return;
   try {
     await apiFetch(`/forward/${uid}/upsert`, { method: 'POST', body: JSON.stringify({ rule_name, source_id, dest_ids }) });
@@ -650,7 +650,7 @@ async function createForwardTask() {
 async function editForwardTask(userId, ruleName, src, dests) {
   const source_id = prompt('Editar origem:', src || '');
   if (!source_id) return;
-  const dest_ids = prompt('Editar destinos (vírgula):', dests || '');
+  const dest_ids = prompt('Editar destinos (vÃ­rgula):', dests || '');
   if (!dest_ids) return;
   try {
     await apiFetch(`/forward/${userId}/upsert`, { method: 'POST', body: JSON.stringify({ rule_name: ruleName, source_id, dest_ids }) });
@@ -668,7 +668,7 @@ async function deleteForwardTask(userId, ruleName) {
   } catch (e) { showToast('Erro: ' + e.message, 'error'); }
 }
 
-// ─── Clone ────────────────────────────────────────────────────
+// â”€â”€â”€ Clone â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function loadCloneTasks() {
   const tbody = $('clone-tbody');
   if (!tbody) return;
@@ -680,7 +680,7 @@ async function loadCloneTasks() {
 
     if (!tasks.length) {
       tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;">
-        <div class="empty-state"><div class="empty-icon">📋</div><p>Nenhuma tarefa de clone</p></div>
+        <div class="empty-state"><div class="empty-icon">ðŸ“‹</div><p>Nenhuma tarefa de clone</p></div>
       </td></tr>`;
       return;
     }
@@ -693,12 +693,12 @@ async function loadCloneTasks() {
 }
 
 function renderCloneRow(task) {
-  const id     = task.id   || task.task_id   || '—';
-  const name   = task.name || task.nome      || '—';
+  const id     = task.id   || task.task_id   || 'â€”';
+  const name   = task.name || task.nome      || 'â€”';
   const src    = task.source || task.source_id || task.origem || '-';
   const dsts   = Array.isArray(task.destinations || task.destinos)
                    ? (task.destinations || task.destinos).join(', ')
-                   : (task.destination || task.destino || '—');
+                   : (task.destination || task.destino || 'â€”');
   const done   = task.cloned  || task.done    || 0;
   const total  = task.total   || task.messages || 0;
   const status = task.status  || (task.active ? 'running' : 'paused');
@@ -707,7 +707,7 @@ function renderCloneRow(task) {
     running: '<span class="badge badge-green">RODANDO</span>',
     paused:  '<span class="badge badge-yellow">PAUSADO</span>',
     stopped: '<span class="badge badge-red">PARADO</span>',
-    done:    '<span class="badge badge-cyan">CONCLUÍDO</span>'
+    done:    '<span class="badge badge-cyan">CONCLUÃDO</span>'
   }[status] || renderStatusBadge(false);
 
   return `
@@ -719,11 +719,11 @@ function renderCloneRow(task) {
       <td>${statusBadge}</td>
       <td>
         <div class="btn-group">
-          <button class="btn btn-success btn-sm" onclick="startClone('${id}')">▶ Iniciar</button>
-          <button class="btn btn-warning btn-sm" onclick="pauseClone('${id}')">⏸ Pausar</button>
-          <button class="btn btn-danger btn-sm"  onclick="stopClone('${id}')">⏹ Parar</button>
-          <button class="btn btn-ghost btn-sm" onclick="editCloneTask('${id}','${src}','${String(task.dest_ids || '').replace(/'/g, '&#39;')}','${task.source_topic_id || 0}','${task.dest_topic_id || 0}','${task.start_id || 0}','${task.limit_id || 0}')">✏</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteCloneTask('${id}')">🗑</button>
+          <button class="btn btn-success btn-sm" onclick="startClone('${id}')">â–¶ Iniciar</button>
+          <button class="btn btn-warning btn-sm" onclick="pauseClone('${id}')">â¸ Pausar</button>
+          <button class="btn btn-danger btn-sm"  onclick="stopClone('${id}')">â¹ Parar</button>
+          <button class="btn btn-ghost btn-sm" onclick="editCloneTask('${id}','${src}','${String(task.dest_ids || '').replace(/'/g, '&#39;')}','${task.source_topic_id || 0}','${task.dest_topic_id || 0}','${task.start_id || 0}','${task.limit_id || 0}')">âœ</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteCloneTask('${id}')">ðŸ—‘</button>
         </div>
       </td>
     </tr>
@@ -761,10 +761,10 @@ async function stopClone(taskId) {
 async function createCloneTask() {
   const name = prompt('Nome da tarefa clone:'); if (!name) return;
   const source_id = prompt('ID origem:'); if (!source_id) return;
-  const dest_ids = prompt('IDs destino (vírgula):'); if (!dest_ids) return;
-  const source_topic_id = Number(prompt('Tópico origem (0=nenhum):', '0') || 0);
-  const dest_topic_id = Number(prompt('Tópico destino (0=nenhum):', '0') || 0);
-  const start_id = Number(prompt('ID inicial (0=início):', '0') || 0);
+  const dest_ids = prompt('IDs destino (vÃ­rgula):'); if (!dest_ids) return;
+  const source_topic_id = Number(prompt('TÃ³pico origem (0=nenhum):', '0') || 0);
+  const dest_topic_id = Number(prompt('TÃ³pico destino (0=nenhum):', '0') || 0);
+  const start_id = Number(prompt('ID inicial (0=inÃ­cio):', '0') || 0);
   const limit_id = Number(prompt('ID final (0=sem limite):', '0') || 0);
   try {
     await apiFetch('/clone/create', { method: 'POST', body: JSON.stringify({ name, source_id, dest_ids, source_topic_id, dest_topic_id, start_id, limit_id }) });
@@ -775,9 +775,9 @@ async function createCloneTask() {
 
 async function editCloneTask(taskId, source, dests, st, dt, startId, limitId) {
   const source_id = prompt('ID origem:', source || ''); if (!source_id) return;
-  const dest_ids = prompt('IDs destino (vírgula):', dests || ''); if (!dest_ids) return;
-  const source_topic_id = Number(prompt('Tópico origem:', String(st || 0)) || 0);
-  const dest_topic_id = Number(prompt('Tópico destino:', String(dt || 0)) || 0);
+  const dest_ids = prompt('IDs destino (vÃ­rgula):', dests || ''); if (!dest_ids) return;
+  const source_topic_id = Number(prompt('TÃ³pico origem:', String(st || 0)) || 0);
+  const dest_topic_id = Number(prompt('TÃ³pico destino:', String(dt || 0)) || 0);
   const start_id = Number(prompt('ID inicial:', String(startId || 0)) || 0);
   const limit_id = Number(prompt('ID final:', String(limitId || 0)) || 0);
   try {
@@ -796,7 +796,7 @@ async function deleteCloneTask(taskId) {
   } catch (e) { showToast('Erro: ' + e.message, 'error'); }
 }
 
-// ─── Forwarder (Encaminhadora) ────────────────────────────────
+// â”€â”€â”€ Forwarder (Encaminhadora) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function loadForwarderTasks() {
   const tbody = $('forwarder-tbody');
   if (!tbody) return;
@@ -808,7 +808,7 @@ async function loadForwarderTasks() {
 
     if (!tasks.length) {
       tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;">
-        <div class="empty-state"><div class="empty-icon">⚡</div><p>Nenhuma encaminhadora configurada</p></div>
+        <div class="empty-state"><div class="empty-icon">âš¡</div><p>Nenhuma encaminhadora configurada</p></div>
       </td></tr>`;
       return;
     }
@@ -821,11 +821,11 @@ async function loadForwarderTasks() {
 }
 
 function renderForwarderRow(task) {
-  const id       = task.id || task.task_id || '—';
-  const name     = task.name || task.nome  || '—';
-  const stock    = task.estoque || task.stock_channel || '—';
-  const dest     = task.destination || task.destino   || '—';
-  const interval = task.interval || task.intervalo    || '—';
+  const id       = task.id || task.task_id || 'â€”';
+  const name     = task.name || task.nome  || 'â€”';
+  const stock    = task.estoque || task.stock_channel || 'â€”';
+  const dest     = task.destination || task.destino   || 'â€”';
+  const interval = task.interval || task.intervalo    || 'â€”';
   const lastSent = task.last_sent || task.ultimo_envio || null;
   const active   = task.active || task.status === 'running' || false;
 
@@ -842,8 +842,8 @@ function renderForwarderRow(task) {
           <span class="text-sm text-muted">${active ? 'Ativo' : 'Inativo'}</span>
         </div>
         <div class="btn-group mt-4">
-          <button class="btn btn-ghost btn-sm" onclick="editForwarderTask('${id}','${stock}','${dest}','${task.interval_mins || 30}')">✏</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteForwarderTask('${id}')">🗑</button>
+          <button class="btn btn-ghost btn-sm" onclick="editForwarderTask('${id}','${stock}','${dest}','${task.interval_mins || 30}')">âœ</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteForwarderTask('${id}')">ðŸ—‘</button>
         </div>
       </td>
     </tr>
@@ -897,7 +897,7 @@ async function deleteForwarderTask(taskId) {
   } catch (e) { showToast('Erro: ' + e.message, 'error'); }
 }
 
-// ─── Replace Rules (Substituições) ───────────────────────────
+// â”€â”€â”€ Replace Rules (SubstituiÃ§Ãµes) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function loadReplaceRules() {
   const container = $('replace-container');
   if (!container) return;
@@ -911,7 +911,7 @@ async function loadReplaceRules() {
     const items = Array.isArray(data) ? data : (data.rules || data.users || []);
 
     if (!items.length) {
-      container.innerHTML = `<div class="empty-state"><div class="empty-icon">✏️</div><p>Nenhuma regra de substituição</p></div>`;
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">âœï¸</div><p>Nenhuma regra de substituiÃ§Ã£o</p></div>`;
       return;
     }
 
@@ -932,7 +932,7 @@ async function loadReplaceRules() {
     container.innerHTML = grouped.map(renderReplaceGroup).join('');
   } catch (e) {
     container.innerHTML = `<div style="text-align:center;color:var(--red);padding:20px;">${e.message}</div>`;
-    showToast('Erro ao carregar substituições: ' + e.message, 'error');
+    showToast('Erro ao carregar substituiÃ§Ãµes: ' + e.message, 'error');
   }
 }
 
@@ -942,7 +942,7 @@ function renderReplaceGroup(group) {
     <div class="card mb-16">
       <div class="section-header" style="margin-bottom:16px;">
         <div class="section-title">
-          <span class="icon">✏️</span>
+          <span class="icon">âœï¸</span>
           <div>
             <h2 style="font-size:1rem;">${phone || userId}</h2>
             <p>${rules.length} regra(s)</p>
@@ -969,8 +969,8 @@ function renderReplaceGroup(group) {
 
 function renderReplaceRow(userId, rule) {
   const id      = rule.id || rule.rule_id || Math.random();
-  const find    = rule.find    || rule.buscar      || '—';
-  const replace = rule.replace || rule.substituir  || '—';
+  const find    = rule.find    || rule.buscar      || 'â€”';
+  const replace = rule.replace || rule.substituir  || 'â€”';
   const active  = rule.active  || rule.ativo       || false;
 
   return `
@@ -1000,17 +1000,17 @@ async function toggleReplace(event, userId, ruleId) {
 }
 
 async function linkReplaceTasks(userId, ruleId) {
-  const task_names = prompt('Nomes das tasks forward vinculadas (vírgula):', '');
+  const task_names = prompt('Nomes das tasks forward vinculadas (vÃ­rgula):', '');
   if (task_names == null) return;
   try {
     await apiFetch(`/replace/${userId}/${ruleId}/link`, { method: 'POST', body: JSON.stringify({ task_names }) });
-    showToast('Vínculos atualizados', 'success');
+    showToast('VÃ­nculos atualizados', 'success');
   } catch (e) {
     showToast('Erro: ' + e.message, 'error');
   }
 }
 
-// ─── VIP Mover ────────────────────────────────────────────────
+// â”€â”€â”€ VIP Mover â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function loadVipTasks() {
   const tbody = $('vip-tbody');
   if (!tbody) return;
@@ -1022,7 +1022,7 @@ async function loadVipTasks() {
 
     if (!tasks.length) {
       tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;">
-        <div class="empty-state"><div class="empty-icon">⭐</div><p>Nenhuma tarefa VIP configurada</p></div>
+        <div class="empty-state"><div class="empty-icon">â­</div><p>Nenhuma tarefa VIP configurada</p></div>
       </td></tr>`;
       return;
     }
@@ -1035,11 +1035,11 @@ async function loadVipTasks() {
 }
 
 function renderVipRow(task) {
-  const id       = task.id || task.task_id || '—';
-  const name     = task.name || task.nome  || '—';
-  const channel  = task.channel || task.canal       || '—';
-  const category = task.category || task.categoria  || '—';
-  const freq     = task.frequency || task.frequencia || '—';
+  const id       = task.id || task.task_id || 'â€”';
+  const name     = task.name || task.nome  || 'â€”';
+  const channel  = task.channel || task.canal       || 'â€”';
+  const category = task.category || task.categoria  || 'â€”';
+  const freq     = task.frequency || task.frequencia || 'â€”';
   const active   = task.active || task.status === 'running' || false;
 
   return `
@@ -1054,8 +1054,8 @@ function renderVipRow(task) {
           <span class="text-sm text-muted">${active ? 'Ativo' : 'Inativo'}</span>
         </div>
         <div class="btn-group mt-4">
-          <button class="btn btn-ghost btn-sm" onclick="editVipTask('${id}','${channel}','${category}','${freq}')">✏</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteVipTask('${id}')">🗑</button>
+          <button class="btn btn-ghost btn-sm" onclick="editVipTask('${id}','${channel}','${category}','${freq}')">âœ</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteVipTask('${id}')">ðŸ—‘</button>
         </div>
       </td>
     </tr>
@@ -1080,7 +1080,7 @@ async function createVipTask() {
   const name = prompt('Nome da tarefa VIP:'); if (!name) return;
   const channel_id = prompt('ID do canal origem:'); if (!channel_id) return;
   const category = prompt('Categoria:', 'VAZADOS') || 'VAZADOS';
-  const frequency = prompt('Frequência (3x_day,2x_day,1x_day,every_other_day):', '1x_day') || '1x_day';
+  const frequency = prompt('FrequÃªncia (3x_day,2x_day,1x_day,every_other_day):', '1x_day') || '1x_day';
   try {
     await apiFetch('/vip/create', { method: 'POST', body: JSON.stringify({ name, channel_id, category, frequency }) });
     showToast('VIP task criada', 'success');
@@ -1091,7 +1091,7 @@ async function createVipTask() {
 async function editVipTask(taskId, channel, category, freq) {
   const channel_id = prompt('ID do canal origem:', channel || ''); if (!channel_id) return;
   const newCategory = prompt('Categoria:', category || 'VAZADOS') || category;
-  const frequency = prompt('Frequência:', freq || '1x_day') || freq;
+  const frequency = prompt('FrequÃªncia:', freq || '1x_day') || freq;
   try {
     await apiFetch(`/vip/${taskId}`, { method: 'PATCH', body: JSON.stringify({ channel_id, category: newCategory, frequency }) });
     showToast('VIP task atualizada', 'success');
@@ -1108,7 +1108,7 @@ async function deleteVipTask(taskId) {
   } catch (e) { showToast('Erro: ' + e.message, 'error'); }
 }
 
-// ─── Admin ────────────────────────────────────────────────────
+// â”€â”€â”€ Admin â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function loadAdminUsers() {
   const grid = $('admin-grid');
   if (!grid) return;
@@ -1122,7 +1122,7 @@ async function loadAdminUsers() {
 
     if (!users.length) {
       grid.innerHTML = `<div style="grid-column:1/-1;">
-        <div class="empty-state"><div class="empty-icon">👑</div><p>Nenhum usuário no painel admin</p></div>
+        <div class="empty-state"><div class="empty-icon">ðŸ‘‘</div><p>Nenhum usuÃ¡rio no painel admin</p></div>
       </div>`;
       return;
     }
@@ -1135,7 +1135,7 @@ async function loadAdminUsers() {
 }
 
 function renderAdminUserCard(user) {
-  const id   = user.id || user.user_id || '—';
+  const id   = user.id || user.user_id || 'â€”';
   const name = user.username || user.phone || user.name || `User #${id}`;
   const role = user.role || (user.vip ? 'VIP' : 'FREE');
   const ban  = user.banned || user.is_banned || false;
@@ -1146,13 +1146,13 @@ function renderAdminUserCard(user) {
       <div class="admin-avatar">${initials}</div>
       <div class="admin-info">
         <div class="aname">${name}</div>
-        <div class="ameta">#${id} · ${ban ? '<span style="color:var(--red)">🚫 Banido</span>' : role}</div>
+        <div class="ameta">#${id} Â· ${ban ? '<span style="color:var(--red)">ðŸš« Banido</span>' : role}</div>
       </div>
       <div class="admin-actions">
-        <button class="btn btn-warning btn-sm" onclick="setUserVip('${id}','VIP')" title="Tornar VIP">⭐ VIP</button>
+        <button class="btn btn-warning btn-sm" onclick="setUserVip('${id}','VIP')" title="Tornar VIP">â­ VIP</button>
         <button class="btn btn-ghost btn-sm" onclick="setUserVip('${id}','FREE')" title="Tornar FREE">FREE</button>
         <button class="btn btn-danger btn-sm" onclick="banUser('${id}', ${ban})" title="${ban ? 'Desbanir' : 'Banir'}">
-          ${ban ? '✅ Desbanir' : '🚫 Banir'}
+          ${ban ? 'âœ… Desbanir' : 'ðŸš« Banir'}
         </button>
       </div>
     </div>
@@ -1165,22 +1165,22 @@ async function setUserVip(userId, type) {
       method: 'POST',
       body: JSON.stringify({ sub_type: type === 'VIP' ? 'LIFETIME' : 'FREE' })
     });
-    showToast(`Usuário #${userId} definido como ${type}`, 'success');
+    showToast(`UsuÃ¡rio #${userId} definido como ${type}`, 'success');
     loadAdminUsers();
   } catch (e) { showToast('Erro: ' + e.message, 'error'); }
 }
 
 async function banUser(userId, currentlyBanned) {
   const action = currentlyBanned ? 'desbanir' : 'banir';
-  if (!confirm(`Deseja ${action} o usuário #${userId}?`)) return;
+  if (!confirm(`Deseja ${action} o usuÃ¡rio #${userId}?`)) return;
   try {
     await apiFetch(`/admin/users/${userId}/${currentlyBanned ? 'unban' : 'ban'}`, { method: 'POST' });
-    showToast(`Usuário #${userId} ${currentlyBanned ? 'desbanido' : 'banido'}`, currentlyBanned ? 'success' : 'warning');
+    showToast(`UsuÃ¡rio #${userId} ${currentlyBanned ? 'desbanido' : 'banido'}`, currentlyBanned ? 'success' : 'warning');
     loadAdminUsers();
   } catch (e) { showToast('Erro: ' + e.message, 'error'); }
 }
 
-// ─── Logs WebSocket ───────────────────────────────────────────
+// â”€â”€â”€ Logs WebSocket â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function connectLogs() {
   if (wsConnection && wsConnection.readyState === WebSocket.OPEN) return;
 
@@ -1196,7 +1196,7 @@ function connectLogs() {
 
     wsConnection.onopen = () => {
       updateLogStatus(true);
-      appendLog('[sistema] Conexão WebSocket estabelecida', 'success');
+      appendLog('[sistema] ConexÃ£o WebSocket estabelecida', 'success');
     };
 
     wsConnection.onmessage = (event) => {
@@ -1210,7 +1210,7 @@ function connectLogs() {
 
     wsConnection.onclose = (ev) => {
       updateLogStatus(false);
-      appendLog(`[sistema] Conexão fechada (código: ${ev.code})`, 'warn');
+      appendLog(`[sistema] ConexÃ£o fechada (cÃ³digo: ${ev.code})`, 'warn');
       // Attempt reconnect after 5s if we're still on logs section
       setTimeout(() => {
         if (currentSection === 'logs' && isAuthenticated()) connectLogs();
@@ -1219,11 +1219,11 @@ function connectLogs() {
 
     wsConnection.onerror = (err) => {
       updateLogStatus(false);
-      appendLog('[sistema] Erro na conexão WebSocket', 'error');
+      appendLog('[sistema] Erro na conexÃ£o WebSocket', 'error');
     };
 
   } catch (e) {
-    appendLog(`[sistema] Não foi possível conectar: ${e.message}`, 'error');
+    appendLog(`[sistema] NÃ£o foi possÃ­vel conectar: ${e.message}`, 'error');
     updateLogStatus(false);
   }
 }
@@ -1232,7 +1232,7 @@ function updateLogStatus(connected) {
   const dot = q('.log-dot');
   const label = $('log-status-label');
   if (dot) dot.className = `log-dot ${connected ? '' : 'disconnected'}`;
-  if (label) label.textContent = connected ? 'Conectado · Stream ativo' : 'Desconectado';
+  if (label) label.textContent = connected ? 'Conectado Â· Stream ativo' : 'Desconectado';
 }
 
 function appendLog(text, forcedClass = null) {
@@ -1291,7 +1291,7 @@ function setLogFilter(filter) {
   if (logAutoScroll) output.scrollTop = output.scrollHeight;
 }
 
-// ─── Auto Refresh ─────────────────────────────────────────────
+// â”€â”€â”€ Auto Refresh â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function startAutoRefresh() {
   if (autoRefreshTimer) clearInterval(autoRefreshTimer);
   autoRefreshTimer = setInterval(() => {
@@ -1302,7 +1302,7 @@ function startAutoRefresh() {
   }, 10000);
 }
 
-// ─── Screens ──────────────────────────────────────────────────
+// â”€â”€â”€ Screens â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function showLoginScreen() {
   if (autoRefreshTimer) clearInterval(autoRefreshTimer);
   $('login-overlay').style.display = 'flex';
@@ -1335,7 +1335,7 @@ function showAppScreen() {
   startAutoRefresh();
 }
 
-// ─── Mobile sidebar ───────────────────────────────────────────
+// â”€â”€â”€ Mobile sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function openMobileSidebar() {
   $('sidebar').classList.add('open');
   $('sidebar-overlay').style.display = 'block';
@@ -1346,7 +1346,7 @@ function closeMobileSidebar() {
   $('sidebar-overlay').style.display = 'none';
 }
 
-// ─── Utility ─────────────────────────────────────────────────
+// â”€â”€â”€ Utility â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function escapeHtml(str) {
   return String(str)
     .replace(/&/g, '&amp;')
@@ -1386,7 +1386,52 @@ function ensureSectionActions() {
   });
 }
 
-// ─── Login Form Handler ────────────────────────────────────────
+// â”€â”€â”€ Login Form Handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function normalizeApiBase(value) {
+  let base = String(value || '').trim();
+  if (!base) return '';
+  base = base.replace(/\/+$/, '');
+  if (!base.endsWith('/api')) base += '/api';
+  return base;
+}
+
+function initApiConfig() {
+  const toggle = $('api-config-toggle');
+  const panel = $('api-config-panel');
+  const input = $('api-base-input');
+  const save = $('api-base-save');
+  const clear = $('api-base-clear');
+  if (!toggle || !panel || !input || !save || !clear) return;
+
+  input.value = CONFIG_API_BASE || SAVED_ACTIVE_API_BASE || activeApiBase || '';
+  toggle.addEventListener('click', () => {
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  });
+  save.addEventListener('click', () => {
+    const base = normalizeApiBase(input.value);
+    if (!base) return;
+    localStorage.setItem('tgpanel_api_base', base);
+    localStorage.setItem(API_ACTIVE_KEY, base);
+    activeApiBase = base;
+    const errEl = $('login-error');
+    if (errEl) {
+      errEl.textContent = `API salva: ${base}. Tente entrar novamente.`;
+      errEl.style.display = 'block';
+    }
+  });
+  clear.addEventListener('click', () => {
+    localStorage.removeItem('tgpanel_api_base');
+    localStorage.removeItem(API_ACTIVE_KEY);
+    input.value = '';
+    activeApiBase = API_BASE;
+    const errEl = $('login-error');
+    if (errEl) {
+      errEl.textContent = 'API manual removida. Recarregue a pagina e tente novamente.';
+      errEl.style.display = 'block';
+    }
+  });
+}
+
 function initLoginForm() {
   const form    = $('login-form');
   const errEl   = $('login-error');
@@ -1426,8 +1471,9 @@ function initLoginForm() {
   });
 }
 
-// ─── Init ─────────────────────────────────────────────────────
+// â”€â”€â”€ Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.addEventListener('DOMContentLoaded', () => {
+  initApiConfig();
   initLoginForm();
 
   // Nav items
