@@ -1,1 +1,1 @@
-window.TG_FORWARD_API_BASE = "https://tgforward-backend.onrender.com/api";
+window.TG_FORWARD_API_BASE = "https://tgforward-backend2.onrender.com/api";
