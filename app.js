@@ -41,7 +41,12 @@ async function fetchWithApiFallback(path, options = {}) {
   for (const base of bases) {
     try {
       const res = await fetch(`${base}${path}`, options);
+      const contentType = res.headers.get('content-type') || '';
       if (CONFIG_API_BASE || res.status !== 404) {
+        if (path.startsWith('/auth/') && !contentType.includes('application/json')) {
+          lastError = new Error(`API invalida em ${base}: resposta nao e JSON`);
+          continue;
+        }
         activeApiBase = base;
         localStorage.setItem(API_ACTIVE_KEY, base);
         return res;
@@ -53,6 +58,18 @@ async function fetchWithApiFallback(path, options = {}) {
   }
 
   throw lastError || new Error('Servidor web offline ou inacessivel.');
+}
+
+async function readJsonResponse(res) {
+  const text = await res.text();
+  if (!text.trim()) {
+    throw new Error(`Resposta vazia da API em ${activeApiBase}`);
+  }
+  try {
+    return JSON.parse(text);
+  } catch (_) {
+    throw new Error(`Resposta invalida da API em ${activeApiBase}. O site esta apontando para o dominio errado ou a API nao esta ativa.`);
+  }
 }
 
 function getWsUrl() {
@@ -105,11 +122,11 @@ async function login(user, pass) {
   }
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
+    const err = await readJsonResponse(res).catch(() => ({}));
     throw new Error(err.error || err.detail || err.message || 'Credenciais invalidas');
   }
 
-  const data = await res.json();
+  const data = await readJsonResponse(res);
   const token = data.access_token || data.token || data.access || '';
   if (!token) throw new Error('Login sem token de acesso');
 
@@ -169,7 +186,7 @@ async function apiFetch(path, options = {}) {
   if (!res.ok) {
     let msg = `Erro ${res.status}`;
     try {
-      const body = await res.json();
+      const body = await readJsonResponse(res);
       msg = body.error || body.detail || body.message || msg;
     } catch (_) {}
     if (res.status === 404) {
@@ -179,7 +196,7 @@ async function apiFetch(path, options = {}) {
   }
 
   const contentType = res.headers.get('content-type') || '';
-  if (contentType.includes('application/json')) return res.json();
+  if (contentType.includes('application/json')) return readJsonResponse(res);
   return res.text();
 }
 
@@ -1399,7 +1416,7 @@ function initLoginForm() {
       showToast('Login realizado com sucesso!', 'success');
       showAppScreen();
     } catch (err) {
-      errEl.textContent = err.message || 'Credenciais inválidas';
+      errEl.textContent = err.message || 'Credenciais invalidas';
       errEl.style.display = 'block';
     } finally {
       btn.disabled = false;
