@@ -7,9 +7,25 @@
 // ─── Config ──────────────────────────────────────────────────
 const IS_FILE_PROTOCOL = window.location.protocol === 'file:';
 const CONFIG_API_BASE = window.TG_FORWARD_API_BASE || localStorage.getItem('tgpanel_api_base') || '';
+const API_ACTIVE_KEY = 'tgpanel_active_api_base';
+const SAVED_ACTIVE_API_BASE = localStorage.getItem(API_ACTIVE_KEY) || '';
 const API_BASE = CONFIG_API_BASE || (IS_FILE_PROTOCOL
   ? 'http://127.0.0.1:7860/api'
   : `${window.location.origin}/api`);
+const EXTRA_API_CANDIDATES = Array.isArray(window.TG_FORWARD_API_CANDIDATES)
+  ? window.TG_FORWARD_API_CANDIDATES
+  : [];
+const API_BASE_CANDIDATES = Array.from(new Set([
+  ...(SAVED_ACTIVE_API_BASE ? [SAVED_ACTIVE_API_BASE] : []),
+  API_BASE,
+  ...EXTRA_API_CANDIDATES,
+  ...(CONFIG_API_BASE ? [] : [
+    'https://tg-forward-bot.discloud.app/api',
+    'https://universo-hot.discloud.app/api',
+    'http://127.0.0.1:7860/api'
+  ])
+])).filter(Boolean);
+let activeApiBase = SAVED_ACTIVE_API_BASE || API_BASE;
 const WS_URL = CONFIG_API_BASE
   ? CONFIG_API_BASE.replace(/^http/, 'ws').replace(/\/api\/?$/, '/ws/logs')
   : (IS_FILE_PROTOCOL
@@ -17,6 +33,34 @@ const WS_URL = CONFIG_API_BASE
   : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/logs`);
 const TOKEN_KEY = 'tgpanel_token';
 const USER_KEY  = 'tgpanel_user';
+
+async function fetchWithApiFallback(path, options = {}) {
+  const bases = Array.from(new Set([activeApiBase, ...API_BASE_CANDIDATES]));
+  let lastError = null;
+
+  for (const base of bases) {
+    try {
+      const res = await fetch(`${base}${path}`, options);
+      if (CONFIG_API_BASE || res.status !== 404) {
+        activeApiBase = base;
+        localStorage.setItem(API_ACTIVE_KEY, base);
+        return res;
+      }
+      lastError = new Error(`API nao encontrada em ${base}`);
+    } catch (err) {
+      lastError = err;
+    }
+  }
+
+  throw lastError || new Error('Servidor web offline ou inacessivel.');
+}
+
+function getWsUrl() {
+  if (activeApiBase) {
+    return activeApiBase.replace(/^http/, 'ws').replace(/\/api\/?$/, '/ws/logs');
+  }
+  return WS_URL;
+}
 
 // ─── State ───────────────────────────────────────────────────
 let currentSection   = 'dashboard';
@@ -51,7 +95,7 @@ function isAuthenticated() {
 async function login(user, pass) {
   let res;
   try {
-    res = await fetch(`${API_BASE}/auth/login`, {
+    res = await fetchWithApiFallback('/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: user, password: pass })
@@ -89,6 +133,17 @@ async function logout() {
   showLoginScreen();
 }
 
+async function refreshCurrentUser() {
+  const data = await apiFetch('/auth/me');
+  localStorage.setItem(USER_KEY, JSON.stringify({
+    username: data.username,
+    role: data.role || (data.is_admin ? 'Admin' : 'User'),
+    user_id: data.user_id,
+    is_admin: !!data.is_admin
+  }));
+  return data;
+}
+
 // ─── API Fetch ────────────────────────────────────────────────
 async function apiFetch(path, options = {}) {
   const token = getToken();
@@ -100,7 +155,7 @@ async function apiFetch(path, options = {}) {
 
   let res;
   try {
-    res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+    res = await fetchWithApiFallback(path, { ...options, headers });
   } catch (_) {
     throw new Error('Servidor web offline ou inacessivel.');
   }
@@ -117,12 +172,31 @@ async function apiFetch(path, options = {}) {
       const body = await res.json();
       msg = body.error || body.detail || body.message || msg;
     } catch (_) {}
+    if (res.status === 404) {
+      msg = `API nao encontrada em ${activeApiBase}. Abra o site pela Discloud ou atualize o frontend para apontar para a API da Discloud.`;
+    }
     throw new Error(msg);
   }
 
   const contentType = res.headers.get('content-type') || '';
   if (contentType.includes('application/json')) return res.json();
   return res.text();
+}
+
+async function waitForQueuedCommand(response, timeoutMs = 12000) {
+  const cmdId = response && (response.queued_command_id || response.command_id);
+  if (!cmdId) return response;
+
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    await new Promise(resolve => setTimeout(resolve, 900));
+    const data = await apiFetch(`/commands/${cmdId}`);
+    if (data.status === 'done') return data;
+    if (data.status === 'failed') {
+      throw new Error(data.result_text || 'O bot nao conseguiu executar o comando.');
+    }
+  }
+  return response;
 }
 
 // ─── Toast Notifications ──────────────────────────────────────
@@ -510,9 +584,10 @@ function renderForwardTaskItem(userId, task) {
 
 async function startListener(userId, taskName) {
   try {
-    await apiFetch(`/forward/${userId}/${encodeURIComponent(taskName)}/start`, { method: 'POST' });
+    const res = await apiFetch(`/forward/${userId}/${encodeURIComponent(taskName)}/start`, { method: 'POST' });
+    await waitForQueuedCommand(res);
     showToast(`Listener "${taskName}" iniciado`, 'success');
-    setTimeout(loadForwardTasks, 600);
+    loadForwardTasks();
   } catch (e) {
     showToast('Erro ao iniciar: ' + e.message, 'error');
   }
@@ -520,9 +595,10 @@ async function startListener(userId, taskName) {
 
 async function stopListener(userId, taskName) {
   try {
-    await apiFetch(`/forward/${userId}/${encodeURIComponent(taskName)}/stop`, { method: 'POST' });
+    const res = await apiFetch(`/forward/${userId}/${encodeURIComponent(taskName)}/stop`, { method: 'POST' });
+    await waitForQueuedCommand(res);
     showToast(`Listener "${taskName}" parado`, 'success');
-    setTimeout(loadForwardTasks, 600);
+    loadForwardTasks();
   } catch (e) {
     showToast('Erro ao parar: ' + e.message, 'error');
   }
@@ -530,17 +606,17 @@ async function stopListener(userId, taskName) {
 
 async function restartListener(userId, taskName) {
   try {
-    await apiFetch(`/forward/${userId}/${encodeURIComponent(taskName)}/restart`, { method: 'POST' });
+    const res = await apiFetch(`/forward/${userId}/${encodeURIComponent(taskName)}/restart`, { method: 'POST' });
+    await waitForQueuedCommand(res, 16000);
     showToast(`Listener "${taskName}" reiniciado`, 'info');
-    setTimeout(loadForwardTasks, 800);
+    loadForwardTasks();
   } catch (e) {
     showToast('Erro ao reiniciar: ' + e.message, 'error');
   }
 }
 
 async function createForwardTask() {
-  const u = getCurrentUser();
-  const uid = u.user_id;
+  const uid = getCurrentUserId();
   const rule_name = prompt('Nome da tarefa forward:');
   if (!rule_name) return;
   const source_id = prompt('ID de origem:');
@@ -639,26 +715,29 @@ function renderCloneRow(task) {
 
 async function startClone(taskId) {
   try {
-    await apiFetch(`/clone/${taskId}/start`, { method: 'POST' });
+    const res = await apiFetch(`/clone/${taskId}/start`, { method: 'POST' });
+    await waitForQueuedCommand(res);
     showToast('Clone iniciado', 'success');
-    setTimeout(loadCloneTasks, 600);
+    loadCloneTasks();
   } catch (e) { showToast('Erro: ' + e.message, 'error'); }
 }
 
 async function pauseClone(taskId) {
   try {
-    await apiFetch(`/clone/${taskId}/pause`, { method: 'POST' });
+    const res = await apiFetch(`/clone/${taskId}/pause`, { method: 'POST' });
+    await waitForQueuedCommand(res);
     showToast('Clone pausado', 'warning');
-    setTimeout(loadCloneTasks, 600);
+    loadCloneTasks();
   } catch (e) { showToast('Erro: ' + e.message, 'error'); }
 }
 
 async function stopClone(taskId) {
   if (!confirm('Parar este clone?')) return;
   try {
-    await apiFetch(`/clone/${taskId}/stop`, { method: 'POST' });
+    const res = await apiFetch(`/clone/${taskId}/stop`, { method: 'POST' });
+    await waitForQueuedCommand(res);
     showToast('Clone parado', 'info');
-    setTimeout(loadCloneTasks, 600);
+    loadCloneTasks();
   } catch (e) { showToast('Erro: ' + e.message, 'error'); }
 }
 
@@ -759,10 +838,10 @@ async function toggleForwarder(event, taskId) {
   const prev = !chk.checked;
   try {
     const data = await apiFetch(`/forwarder/${taskId}/toggle`, { method: 'POST' });
+    await waitForQueuedCommand(data);
     const now = data.active ?? chk.checked;
     showToast(`Encaminhadora ${now ? 'ativada' : 'desativada'}`, now ? 'success' : 'info');
-    // Refresh after brief delay
-    setTimeout(loadForwarderTasks, 400);
+    loadForwarderTasks();
   } catch (e) {
     chk.checked = prev; // Revert
     showToast('Erro ao alternar: ' + e.message, 'error');
@@ -970,8 +1049,10 @@ async function toggleVip(event, taskId) {
   const chk = event.target;
   const prev = !chk.checked;
   try {
-    await apiFetch(`/vip/${taskId}/toggle`, { method: 'POST' });
+    const res = await apiFetch(`/vip/${taskId}/toggle`, { method: 'POST' });
+    await waitForQueuedCommand(res);
     showToast(`Tarefa VIP ${chk.checked ? 'ativada' : 'desativada'}`, chk.checked ? 'success' : 'info');
+    loadVipTasks();
   } catch (e) {
     chk.checked = prev;
     showToast('Erro: ' + e.message, 'error');
@@ -1092,7 +1173,8 @@ function connectLogs() {
 
   try {
     const token = getToken();
-    const wsUrl = token ? `${WS_URL}?token=${encodeURIComponent(token)}` : WS_URL;
+    const baseWsUrl = getWsUrl();
+    const wsUrl = token ? `${baseWsUrl}?token=${encodeURIComponent(token)}` : baseWsUrl;
     wsConnection = new WebSocket(wsUrl);
 
     wsConnection.onopen = () => {
@@ -1225,7 +1307,7 @@ function showAppScreen() {
     if (avatarEl) avatarEl.textContent = (u.username || 'A').substring(0, 2).toUpperCase();
     
     // Esconder itens de menu admin
-    const isAdmin = (u.role === 'Admin' || u.role === 'Administrador');
+    const isAdmin = !!u.is_admin || u.role === 'Admin' || u.role === 'Administrador';
     document.querySelectorAll('.admin-only').forEach(el => {
       el.style.display = isAdmin ? '' : 'none';
     });
@@ -1259,6 +1341,13 @@ function escapeHtml(str) {
 function getCurrentUser() {
   try { return JSON.parse(localStorage.getItem(USER_KEY) || '{}'); }
   catch (_) { return {}; }
+}
+
+function getCurrentUserId() {
+  const u = getCurrentUser();
+  const uid = u.user_id || u.id;
+  if (!uid) throw new Error('Sessao sem usuario. Faca login novamente.');
+  return uid;
 }
 
 function ensureSectionActions() {
@@ -1369,7 +1458,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Check auth
   if (isAuthenticated()) {
-    showAppScreen();
+    refreshCurrentUser()
+      .then(() => showAppScreen())
+      .catch(() => {
+        clearAuth();
+        showLoginScreen();
+      });
   } else {
     showLoginScreen();
   }
